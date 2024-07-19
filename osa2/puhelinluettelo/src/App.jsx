@@ -56,10 +56,18 @@ const App = () => {
         </div>
       </form>
       <h2>Numbers</h2>
-      ...
+      <Persons people={persons}/>
     </div>
   )
 
+}
+
+const Persons = ( {people} ) => {
+  return(
+    <div>
+      {people.map(person => <div key={person.name}>{person.name} {person.number}</div>)}
+    </div>
+  )
 }
 
 export default App
