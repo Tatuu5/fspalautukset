@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import personService from './services/persons'
 
 const App = () => {
   const [persons, setPersons] = useState([]) 
@@ -8,15 +9,14 @@ const App = () => {
   const [newFiltering, setNewFiltering] = useState('')
 
   useEffect(() => {
-    console.log('effect')
-    axios.get('http://localhost:3001/persons')
-    .then(response => {
-      console.log('promise fulfilled')
-      setPersons(response.data)
-    })
-  }, [])
+    personService
+        .getAll()
+        .then(initialPeople => {
+            setPersons(initialPeople)
+        })
+}, [])
   console.log('render', persons.length, 'people')
-
+  
 
   const addPerson = (event) => {
     event.preventDefault()
@@ -30,10 +30,14 @@ const App = () => {
     const namefiltering = persons.some(person => person.name === newName)
     namefiltering 
     ? alert(`${newName} is already added to phonebook`) 
-    : setPersons(persons.concat(personObject))
+    : personService.submitToServer(personObject)
+      .then(returnedPerson => {
+        setPersons(persons.concat(returnedPerson))
+        setNewName('')
+        setNewNumber('')
+      })
 
-    setNewName('')
-    setNewNumber('')
+  
   }
 
 
@@ -116,7 +120,7 @@ const PersonForm = (props) => {
 const Filter = (props) => {
   return(
   <div>
-    filter shown with <input value={props.filtering} onChange={props.onChangeFilter}/>
+    filter shown with <input value={props.filtering} onChange={props.onChangeFilter} name="filter"/>
   </div>
   )
 }
