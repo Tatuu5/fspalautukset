@@ -13,7 +13,15 @@ const getAll = () => {
     return request.then(response => response.data)
 }
 
-export default { submitToServer, getAll }
+
+const deleteFromServer = (id) => {
+    const url = `http://localhost:3001/persons/${id}`
+    return (
+    axios.delete(url)
+    )
+}
+
+export default { submitToServer, getAll, deleteFromServer }
 
 
 

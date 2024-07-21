@@ -14,6 +14,7 @@ const App = () => {
         .then(initialPeople => {
             setPersons(initialPeople)
         })
+        .catch(error => {console.log('fail')})
 }, [])
   console.log('render', persons.length, 'people')
   
@@ -36,6 +37,7 @@ const App = () => {
         setNewName('')
         setNewNumber('')
       })
+      .catch(error => {console.log('fail')})
 
   
   }
@@ -53,8 +55,18 @@ const App = () => {
   const handleFiltering = (event) => {
     console.log(event.target.value)
     setNewFiltering(event.target.value.toLowerCase())
+  }
 
-    
+  const deletePerson = ( person ) => {
+
+    if (window.confirm(`Delete ${person.name} ?`))
+      personService.deleteFromServer(person.id)
+      .then(response => {setPersons(persons.filter(p => p.id !== person.id))
+        console.log('person deleted succesfully')
+      })
+      .catch(error => {
+        console.log('Error deleting person', error)
+      })
   }
 
   const filteredPersons = persons.filter(person => person.name.toLowerCase().includes(newFiltering))
@@ -77,16 +89,18 @@ const App = () => {
       
       <h3>Numbers</h3>
 
-      <Persons people={filteredPersons}/>
+      <Persons people={filteredPersons} deletePerson={deletePerson}/>
     </div>
   )
 
 }
 
-const Persons = ( {people} ) => {
+const Persons = ( {people, deletePerson} ) => {
   return(
     <div>
-      {people.map(person => <div key={person.name}>{person.name} {person.number}</div>)}
+      {people.map(person => 
+        <div key={person.name}> {person.name} {person.number} 
+        <button onClick={() => deletePerson(person)}>delete</button></div>)}
     </div>
   )
 }
