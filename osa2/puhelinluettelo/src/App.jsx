@@ -29,19 +29,29 @@ const App = () => {
     }
 
     const namefiltering = persons.some(person => person.name === newName)
-    namefiltering 
-    ? alert(`${newName} is already added to phonebook`) 
-    : personService.submitToServer(personObject)
+    
+    if (namefiltering) {
+      if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
+        const personToUpdate = persons.find(person => person.name === newName)
+        personService.updatePerson(personToUpdate.id, personObject)
+        .then(returnedPerson => {
+          setPersons(persons.map(person => person.id !== personToUpdate.id ? person : returnedPerson))
+          setNewName('')
+          setNewNumber('')
+        })
+      }
+    } else {
+      personService.submitToServer(personObject)
       .then(returnedPerson => {
         setPersons(persons.concat(returnedPerson))
         setNewName('')
         setNewNumber('')
       })
       .catch(error => {console.log('fail')})
+    }
 
-  
+
   }
-
 
   const handleNewName = (event) => {
     /*console.log(event.target.value)*/
