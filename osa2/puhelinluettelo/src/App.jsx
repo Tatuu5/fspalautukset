@@ -7,8 +7,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFiltering, setNewFiltering] = useState('')
-  const [errorMessage, setErrorMessage] = useState('some error happened...')
-
+  const [errorMessage, setErrorMessage] = useState(null)
+  const [successMessage, setSuccessMessage] = useState(null)
 
   useEffect(() => {
     personService
@@ -40,9 +40,16 @@ const App = () => {
           setPersons(persons.map(person => person.id !== personToUpdate.id ? person : returnedPerson))
           setNewName('')
           setNewNumber('')
-          setErrorMessage(`Updated ${returnedPerson.name}`)
-          setTimeout(() => setErrorMessage(null), 2500)
+          setSuccessMessage(`Updated ${returnedPerson.name}`)
+          setTimeout(() => setSuccessMessage(null), 2500)
         })
+        .catch(error => {
+          console.log('Error updating person', error)
+          setErrorMessage(`Information of ${personToUpdate.name} has already been removed from server`)
+          setTimeout(() => setErrorMessage(null), 2500)
+          setPersons(persons.filter(person => person.id !== personToUpdate.id))
+        })
+        
       }
     } else {
       personService.submitToServer(personObject)
@@ -50,10 +57,12 @@ const App = () => {
         setPersons(persons.concat(returnedPerson))
         setNewName('')
         setNewNumber('')
-        setErrorMessage(`Added ${returnedPerson.name}`)
-        setTimeout(() => setErrorMessage(null), 2500)
+        setSuccessMessage(`Added ${returnedPerson.name}`)
+        setTimeout(() => setSuccessMessage(null), 2500)
       })
-      .catch(error => {console.log('fail')})
+      .catch(error => {
+        console.log('error')
+      })
     }
 
 
@@ -79,14 +88,18 @@ const App = () => {
       personService.deleteFromServer(person.id)
       .then(response => {setPersons(persons.filter(p => p.id !== person.id))
         console.log('person deleted succesfully')
-        setErrorMessage(`Deleted ${person.name}`)
+        setSuccessMessage(`Deleted ${person.name}`)
         setTimeout(() => {
-          setErrorMessage(null)
+          setSuccessMessage(null)
         }, 2500)
       })
       .catch(error => {
-        console.log('Error deleting person', error)
+        console.log('Error updating person', error)
+        setErrorMessage(`Information of ${person.name} has already been removed from server`)
+        setTimeout(() => setErrorMessage(null), 2500)
+        setPersons(persons.filter(p => p.id !== person.id))
       })
+      
   }
 
   const filteredPersons = persons.filter(person => person.name.toLowerCase().includes(newFiltering))
@@ -95,8 +108,8 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
 
-      <Notification message={errorMessage}/>
-
+      <Notification message={successMessage}/>
+      <ErrorNotification message={errorMessage}/>
       <Filter filtering={newFiltering} onChangeFilter={handleFiltering}/>
 
       <h3>Add a new</h3>
@@ -160,6 +173,18 @@ const Notification = ({ message }) => {
 
   return (
     <div className="success">
+      {message}
+    </div>
+  )
+}
+
+const ErrorNotification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className="failure">
       {message}
     </div>
   )
