@@ -7,6 +7,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFiltering, setNewFiltering] = useState('')
+  const [errorMessage, setErrorMessage] = useState('some error happened...')
+
 
   useEffect(() => {
     personService
@@ -38,6 +40,8 @@ const App = () => {
           setPersons(persons.map(person => person.id !== personToUpdate.id ? person : returnedPerson))
           setNewName('')
           setNewNumber('')
+          setErrorMessage(`Updated ${returnedPerson.name}`)
+          setTimeout(() => setErrorMessage(null), 2500)
         })
       }
     } else {
@@ -46,6 +50,8 @@ const App = () => {
         setPersons(persons.concat(returnedPerson))
         setNewName('')
         setNewNumber('')
+        setErrorMessage(`Added ${returnedPerson.name}`)
+        setTimeout(() => setErrorMessage(null), 2500)
       })
       .catch(error => {console.log('fail')})
     }
@@ -73,6 +79,10 @@ const App = () => {
       personService.deleteFromServer(person.id)
       .then(response => {setPersons(persons.filter(p => p.id !== person.id))
         console.log('person deleted succesfully')
+        setErrorMessage(`Deleted ${person.name}`)
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 2500)
       })
       .catch(error => {
         console.log('Error deleting person', error)
@@ -84,6 +94,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+
+      <Notification message={errorMessage}/>
 
       <Filter filtering={newFiltering} onChangeFilter={handleFiltering}/>
 
@@ -138,6 +150,18 @@ const PersonForm = (props) => {
         </div>
       </form>
   </div>
+  )
+}
+
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className="success">
+      {message}
+    </div>
   )
 }
 
