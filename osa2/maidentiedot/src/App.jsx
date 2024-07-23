@@ -23,14 +23,18 @@ const App = () => {
     setNewFiltering(event.target.value.toLowerCase())
   }
 
+  const showCountry = ({ country }) => {
+    console.log(country)
+    setNewFiltering(country.name.common.toLowerCase())
+  }
+
   const filteredCountries = countries.filter(country => country.name.common.toLowerCase().includes(newFiltering))
 
 
   return (
     <div>
       <Find filtering={newFiltering} onChangeFilter={handleFiltering}/>
-      <div>COUNTRIES</div>
-      <Countries listOfCountries={filteredCountries}/>
+      <Countries listOfCountries={filteredCountries} showCountry={showCountry}/>
     </div>
   )
 }
@@ -43,7 +47,7 @@ const Find = (props) => {
   )
 }
 
-const Countries = ({ listOfCountries }) => {
+const Countries = ({ listOfCountries, showCountry }) => {
   /*console.log(listOfCountries)*/
   if (listOfCountries.length > 10) {
     return (<div>Too many matches, specify another filter</div>)
@@ -53,7 +57,8 @@ const Countries = ({ listOfCountries }) => {
     return (
       <div>
         {listOfCountries.map(country => 
-          <div key={country.name.official}>{country.name.common}</div>
+          <div key={country.name.official}>{country.name.common}
+          <button onClick={() => showCountry({country})}>show</button></div>
         )}
       </div>
     )
