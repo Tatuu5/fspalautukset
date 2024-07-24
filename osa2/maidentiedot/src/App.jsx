@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+const key = import.meta.env.VITE_W_KEY
 
 const App = () => {
   const [newFiltering, setNewFiltering] = useState('')
@@ -42,7 +43,7 @@ const App = () => {
 const Find = (props) => {
   return (
     <div>
-      find countries <input value={props.filtering} onChange={props.onChangeFilter} />
+      find countries <input name="search" value={props.filtering} onChange={props.onChangeFilter} />
     </div>
   )
 }
@@ -52,7 +53,7 @@ const Countries = ({ listOfCountries, showCountry }) => {
   if (listOfCountries.length > 10) {
     return (<div>Too many matches, specify another filter</div>)
   } else if (listOfCountries.length === 1) {
-    return <Country country={listOfCountries[0]}/>
+    return <Country country={listOfCountries[0]} />
   } else {
     return (
       <div>
@@ -66,23 +67,44 @@ const Countries = ({ listOfCountries, showCountry }) => {
 }
 
 const Country = ({ country }) => {
-  console.log(country)
-  /*console.log(country.languages)
-  console.log(country.flags)*/
+  const [weatherData, setWeatherData] = useState(null)
+
+  useEffect(() => {
+  axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${country.capitalInfo.latlng[0]}&lon=${country.capitalInfo.latlng[1]}&appid=${key}&units=metric`)           
+    .then(response => {
+      setWeatherData(response.data)
+      console.log("fetched data", response.data)
+    })
+    .catch(error => {
+      console.log('error fetching', error)
+    })
+  }, [])
+
+  
+
   const languages = Object.values(country.languages)
   const flagInfo = country.flags
+  if (weatherData) {
+  console.log(weatherData.weather.icon)
   return (
     <div>
       <h1>{country.name.common}</h1>
       <div>capital {country.capital}</div>
       <div>area {country.area}</div>
-      <h2>languages: </h2>
+      <h3>languages: </h3>
       <ul>
         {languages.map(language => <li key={language}>{language}</li>)}
       </ul>
     <img src={flagInfo.png} alt={flagInfo.alt}/>
+    <h2>Weather in {country.capital[0]}</h2>
+    <div>temperature {weatherData.main.temp} Celsius</div>
+    <img src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}/>
+    <div>wind {weatherData.wind.speed} m/s</div>
     </div>
   )
+  } else {
+    return ("Loading country information")
+  }
 }
 
 export default App
