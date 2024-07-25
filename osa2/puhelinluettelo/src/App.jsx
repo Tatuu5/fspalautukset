@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import personService from './services/persons'
+import ErrorNotification from './components/ErrorNotification'
+import Notification from './components/Notification'
+import Filter from './components/Filter'
+import Persons from './components/Persons'
+import PersonForm from './components/PersonForm'
+
 
 const App = () => {
   const [persons, setPersons] = useState([]) 
@@ -130,72 +136,7 @@ const App = () => {
 
 }
 
-const Persons = ( {people, deletePerson} ) => {
-  return(
-    <div>
-      {people.map(person => 
-        <div key={person.name}> {person.name} {person.number} 
-        <button onClick={() => deletePerson(person)}>delete</button></div>)}
-    </div>
-  )
-}
 
-const PersonForm = (props) => {
-  return(
-  <div>
-    <form onSubmit={props.onSubmit}>
-        <div>
-          name: 
-          <input
-             value={props.nameValue} 
-             onChange={props.nameOnChange}
-             name="name_text" />
-        </div>
-        <div>
-          number: <input 
-          value={props.numberValue} 
-          onChange={props.numberOnChange} 
-          name="number_text"
-          />
-        </div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
-  </div>
-  )
-}
 
-const Notification = ({ message }) => {
-  if (message === null) {
-    return null
-  }
-
-  return (
-    <div className="success">
-      {message}
-    </div>
-  )
-}
-
-const ErrorNotification = ({ message }) => {
-  if (message === null) {
-    return null
-  }
-
-  return (
-    <div className="failure">
-      {message}
-    </div>
-  )
-}
-
-const Filter = (props) => {
-  return(
-  <div>
-    filter shown with <input value={props.filtering} onChange={props.onChangeFilter} name="filter"/>
-  </div>
-  )
-}
 
 export default App
