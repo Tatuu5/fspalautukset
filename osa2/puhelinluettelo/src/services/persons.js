@@ -1,5 +1,5 @@
 import axios from 'axios'
-const baseUrl = 'http://localhost:3001/persons'
+const baseUrl = '/persons/'
 
 const submitToServer = (personData) => {
     const request = axios.post(baseUrl, personData)
@@ -15,7 +15,7 @@ const getAll = () => {
 
 
 const deleteFromServer = (id) => {
-    const url = `http://localhost:3001/persons/${id}`
+    const url = `${baseUrl}/${id}`
     return (
     axios.delete(url)
     )
