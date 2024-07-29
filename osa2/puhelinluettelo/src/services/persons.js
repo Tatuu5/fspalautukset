@@ -15,7 +15,7 @@ const getAll = () => {
 
 
 const deleteFromServer = (id) => {
-    const url = `${baseUrl}/${id}`
+    const url = `${baseUrl}${id}`
     return (
     axios.delete(url)
     )
