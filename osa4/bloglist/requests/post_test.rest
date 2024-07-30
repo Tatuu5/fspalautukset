@@ -2,8 +2,8 @@ POST http://localhost:3003/api/blogs
 Content-Type: application/json
 
 {
-    "title": "Päivä 1",
-    "author": "Jorma",
+    "title": "New structure ready",
+    "author": "Petteri",
     "url": "non",
-    "likes": 5
+    "likes": 19
 }
