@@ -132,6 +132,29 @@ test('deletion of blog is successful (204) with correct id', async () => {
     .expect(204)
 })
 
+test('updating blog likes', async () => {
+  let blogsAtStart = await Blog.find({})
+  blogsAtStart = blogsAtStart.map(blog => blog.toJSON())
+
+  const blogToUpdate = blogsAtStart[0]
+
+  const updatedBlog = {
+    title: "React patterns",
+    author: "Michael Chan",
+    url: "https://reactpatterns.com/",
+    likes: 10
+  }
+
+  await api
+    .put(`/api/blogs/${blogToUpdate.id}`)
+    .send(updatedBlog)
+    .expect(200)
+
+  const response = await api.get('/api/blogs')
+  
+  assert.strictEqual(response.body[0].likes, 10)
+})
+
 after(async () => {
     await mongoose.connection.close()
 })
