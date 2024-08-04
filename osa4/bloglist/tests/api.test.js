@@ -121,6 +121,17 @@ test('post request missing title or url', async () => {
     .expect(400)
 })
 
+test('deletion of blog is successful (204) with correct id', async () => {
+  let blogsAtStart = await Blog.find({})
+  blogsAtStart = blogsAtStart.map(blog => blog.toJSON())
+
+  const blogToDelete = blogsAtStart[0]
+
+  await api
+    .delete(`/api/blogs/${blogToDelete.id}`)
+    .expect(204)
+})
+
 after(async () => {
     await mongoose.connection.close()
 })
