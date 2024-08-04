@@ -52,6 +52,75 @@ test('returned blogs have id field called "id"', async () => {
     })
 })
 
+test('valid blog can be added', async () => {
+  const newBlog = {
+    title: 'Brand New Blog',
+    author: 'ME',
+    url: "localhost:3003",
+    likes: 1
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+
+  const contents = response.body.map(blog => blog.url)
+
+  assert.strictEqual(response.body.length, testBlogs.length + 1)
+
+  assert(contents.includes('localhost:3003'))
+})
+
+test('like field not given a value', async () => {
+  const newBlog = {
+    title: 'Brand New Blog',
+    author: 'ME',
+    url: "localhost:3003",
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+
+  const contents = response.body.map(blog => blog.url)
+
+  assert.strictEqual(response.body.length, testBlogs.length + 1)
+
+  assert(contents.includes('localhost:3003'))
+})
+
+test('post request missing title or url', async () => {
+  const newBlog = {
+    likes: 5,
+    author: 'MysteryMan',
+    url: "localhost:3003"
+  }
+
+  const newBlog2 = {
+    likes: 5,
+    author: 'MysteryMan',
+    title: "Super FUNNY :D",
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400)
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog2)
+    .expect(400)
+})
+
 after(async () => {
     await mongoose.connection.close()
 })

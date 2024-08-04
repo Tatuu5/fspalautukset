@@ -1,8 +1,7 @@
 POST http://localhost:3003/api/blogs
 Content-Type: application/json
 
-{
-    "title": "New structure ready",
+{   
     "author": "Petteri",
     "url": "non",
     "likes": 19
