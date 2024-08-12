@@ -1,9 +1,10 @@
-PUT http://localhost:3003/api/blogs/66b9435d85ab68e4121dc9f2
+POST http://localhost:3003/api/blogs
 Content-Type: application/json
 
 {   
-    "author": "Petri",
+    "author": "Martti",
     "url": "non",
-    "likes": 6,
-    "title": "Best day"
+    "likes": 11,
+    "title": "Blogs have their user",
+    "userId": "66b9445a85ab68e4121dca09"
 }
