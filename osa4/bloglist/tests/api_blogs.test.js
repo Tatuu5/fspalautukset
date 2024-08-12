@@ -2,27 +2,16 @@ const { test, after, beforeEach, describe } = require('node:test')
 const assert = require('node:assert')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
-
+const bcrypt = require('bcrypt')
 const app = require('../app')
 
 const api = supertest(app)
 const helper = require('./helper')
 const Blog = require('../models/blogs')
+const User = require('../models/user')
+const { application } = require('express')
 
-const testBlogs = [
-    {
-        title: "React patterns",
-        author: "Michael Chan",
-        url: "https://reactpatterns.com/",
-        likes: 7,
-      },
-      {
-        title: "Go To Statement Considered Harmful",
-        author: "Edsger W. Dijkstra",
-        url: "http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html",
-        likes: 5,
-      },
-]
+const testBlogs = helper.initialBlogs
 
 describe('when two blogs initally added', () => {
   beforeEach(async () => {
@@ -160,6 +149,102 @@ describe('deletion and updating', () => {
     assert.strictEqual(response.body[0].likes, updatedBlog.likes)
   })
 })
+
+describe('when there is initially one user at db', () => {
+  beforeEach(async () => {
+    await User.deleteMany({})
+
+    const passwordHash = await bcrypt.hash('sekret', 10)
+    const user = new User({ username: 'root', passwordHash })
+
+    await user.save()
+  })
+
+  test('creation succeeds with a fresh username', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const newUser = {
+      username: 'jouts',
+      name: 'Matti Laaksonen',
+      password: 'salaSANA',
+    }
+
+    await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const usersAtEnd = await helper.usersInDb()
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length + 1)
+
+    const usernames = usersAtEnd.map(u => u.username)
+    assert(usernames.includes(newUser.username))
+  })
+  test('creation fails with non unique username', async () => {
+    const newUser = {
+      username: 'root',
+      name: 'Kalle-Pekka',
+      password: 'salaSANA1',
+    }
+
+    const response = await api
+                        .post('/api/users')
+                        .send(newUser)
+                        .expect(400)
+
+    assert.strictEqual(response.body.error, 'username must be unique')
+  })
+})
+
+describe.only('username and password conditions', () => {
+  test('creation fails with short password or short username', async () => {
+    const newUser = {
+      username: 'jouts',
+      name: "TESTI",
+      password: "1",
+    }
+
+    const newUser2 = {
+      username: "j",
+      name: "TESTI",
+      password: "testi1",
+    }
+
+    await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+
+    await api
+      .post('/api/users')
+      .send(newUser2)
+      .expect(400)
+
+    const response = await api.post('/api/users').send(newUser)
+    const response2 = await api.post('/api/users').send(newUser2)
+
+    assert.strictEqual(response2.body.error, `User validation failed: username: Path \`username\` (\`${newUser2.username}\`) is shorter than the minimum allowed length (3).`)
+    assert.strictEqual(response.body.error, 'password must be atleast 3 characters long')
+  })
+  test('creation fails with no password and there is correct error message', async () => {
+    const newUser = {
+      username: 'jouts',
+      name: "TESTI",
+    }
+
+    await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+
+    const response = await api.post('/api/users').send(newUser)
+
+    assert.strictEqual(response.body.error, 'no password given')
+  })
+
+})
+
 after(async () => {
     await mongoose.connection.close()
 })
