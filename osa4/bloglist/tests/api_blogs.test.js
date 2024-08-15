@@ -1,4 +1,4 @@
-const { test, after, beforeEach, describe } = require('node:test')
+const { test, after, beforeEach, describe, before } = require('node:test')
 const assert = require('node:assert')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
@@ -43,8 +43,23 @@ describe('when two blogs initally added', () => {
   })
 })
 
-describe('different post requests respond correctly', () => {
+describe('different post requests respond correctly',async () => {
+  let token
+  before(async () => {
+    await api.post('/api/users')
+              .send({username: 'test', name: 'tester', password: 'testing'})
+
+    const response = await api
+                        .post('/api/login')
+                        .send({ username: 'test', password: 'testing'})
+  
+    token = response.body.token
+    
+  })
+
   test('valid blog can be added', async () => {
+    const blogsInBeginning = await helper.blogsInDb()
+
     const newBlog = {
       title: 'Brand New Blog',
       author: 'ME',
@@ -54,15 +69,16 @@ describe('different post requests respond correctly', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
-
+    
     const response = await api.get('/api/blogs')
 
     const contents = response.body.map(blog => blog.url)
-
-    assert.strictEqual(response.body.length, testBlogs.length + 1)
+    
+    assert.strictEqual(response.body.length, blogsInBeginning.length + 1)
 
     assert(contents.includes('localhost:3003'))
   })
@@ -74,19 +90,34 @@ describe('different post requests respond correctly', () => {
       url: "localhost:3003",
     }  
     const blogsAtStart = await helper.blogsInDb()
-    await api
+    const returnedBlog = await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
-
+    
     const response = await api.get('/api/blogs')
 
     const contents = response.body.map(blog => blog.url)
 
+    assert.strictEqual(returnedBlog.body.likes, 0)
     assert.strictEqual(response.body.length, blogsAtStart.length + 1)
 
     assert(contents.includes('localhost:3003'))
+  })
+
+  test('blog post fails if no token given (401)', async () => {
+    const newBlog = {
+      title: 'Test',
+      author: 'Tester',
+      url: 'wassup',
+      likes: 5
+    }
+    
+    await api
+          .post('/api/blogs')
+          .expect(401)
   })
 
   test('post request missing title or url', async () => {
@@ -104,26 +135,47 @@ describe('different post requests respond correctly', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
       .send(newBlog)
       .expect(400)
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
       .send(newBlog2)
       .expect(400)
   })
 })
 
 describe('deletion and updating', () => {
-  test('deletion of blog is successful (204) with correct id', async () => {
-  let blogsAtStart = await Blog.find({})
-  blogsAtStart = blogsAtStart.map(blog => blog.toJSON())
+  test('deletion of blog is successful (204) with correct id and token', async () => {
+  await api.post('/api/users')
+            .send({username: 'test', name: 'tester', password: 'testing'})
 
-  const blogToDelete = blogsAtStart[0]
+  const response = await api
+              .post('/api/login')
+              .send({ username: 'test', password: 'testing'})
 
-  await api
-    .delete(`/api/blogs/${blogToDelete.id}`)
-    .expect(204)
+  token = response.body.token
+  
+  const blogToDelete = {
+    title: 'deleteTest',
+      author: 'Tester',
+      url: 'yo',
+      likes: 5
+  }
+  //first post blog and then delete, couldn't figure out a better way :/
+  const blogResponse = await api
+      .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
+      .send(blogToDelete)
+  
+  const blog = blogResponse.body
+    
+  await api.delete(`/api/blogs/${blog.id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .expect(204)
+
   })
 
   test('updating blog likes', async () => {
@@ -197,7 +249,7 @@ describe('when there is initially one user at db', () => {
   })
 })
 
-describe.only('username and password conditions', () => {
+describe('username and password conditions', () => {
   test('creation fails with short password or short username', async () => {
     const newUser = {
       username: 'jouts',

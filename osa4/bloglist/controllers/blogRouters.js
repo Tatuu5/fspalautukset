@@ -40,7 +40,7 @@ blogsRouter.delete('/:id', userExtractor, async (request, response) => {
     await Blog.findByIdAndDelete(request.params.id)
     return response.status(204).end()
   } else {
-    return response.status(403).json({ error: 'permission denied' })
+    return response.status(401).json({ error: 'permission denied' })
   }
   
   
