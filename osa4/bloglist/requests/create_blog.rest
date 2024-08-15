@@ -1,10 +1,10 @@
 POST http://localhost:3003/api/blogs
 Content-Type: application/json
-Authorization: Bearer 6IkpXVCJ9.eyJ1c2VybmFtZSI6IlBla2thIiwiaWQiOiI2NmI5NDQ1YTg1YWI2OGU0MTIxZGNhMDkiLCJpYXQiOjE3MjM1MDk2ODF9.5SzKJmIVn27I2hocghZnleqsHd9IZegZ3A3WzxhZTz0
+Authorization: Bearer 
 
 {   
-    "author": "Kolli",
-    "url": "secret url :D",
-    "likes": 100,
-    "title": "TESTING"
+    "author": "Testing 101",
+    "url": "non",
+    "likes": 999,
+    "title": "user extracted"
 }
